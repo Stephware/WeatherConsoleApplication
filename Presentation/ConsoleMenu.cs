@@ -137,6 +137,7 @@ public class ConsoleMenu
         }
 
         var useFahrenheit = SelectTemperatureUnit();
+        var forecastFilter = SelectForecastFilter();
 
         var forecast = await _weatherService.GetForecastAsync(
             city,
@@ -150,6 +151,10 @@ public class ConsoleMenu
 
         var temperatureUnit = GetTemperatureUnit(useFahrenheit);
 
+        var forecastItems = FilterForecastItems(
+            forecast,
+            forecastFilter).ToList();
+
         Console.WriteLine();
         Console.WriteLine("========================================");
         Console.WriteLine("5-DAY / 3-HOUR FORECAST");
@@ -158,7 +163,14 @@ public class ConsoleMenu
         Console.WriteLine($"City: {forecast.City.Name}");
         Console.WriteLine();
 
-        foreach (var item in forecast.Items)
+        if (forecastItems.Count == 0)
+        {
+            Console.WriteLine(
+                "No forecast entries found for the selected day.");
+            return;
+        }
+
+        foreach (var item in forecastItems)
         {
             var condition = item.Weather.Count > 0
                 ? item.Weather[0].Description
@@ -170,8 +182,12 @@ public class ConsoleMenu
                 item.Main.Temperature,
                 useFahrenheit);
 
+            var localDateTime = GetForecastLocalDateTime(
+                item,
+                forecast.City.Timezone);
+
             Console.WriteLine(
-                $"{item.DateTimeText,-20}" +
+                $"{localDateTime:yyyy-MM-dd HH:mm:ss} " +
                 $"{temperature,7:F1} {temperatureUnit}   " +
                 $"{condition,-18}" +
                 $"{precipitation,5:F0}%");
@@ -307,6 +323,75 @@ public class ConsoleMenu
                     break;
             }
         }
+    }
+
+    private static int SelectForecastFilter()
+    {
+        while (true)
+        {
+            Console.WriteLine();
+            Console.WriteLine("Select forecast filter:");
+            Console.WriteLine("1. Show all forecast entries");
+            Console.WriteLine("2. Show today's forecast");
+            Console.WriteLine("3. Show tomorrow's forecast");
+            Console.Write("Enter choice: ");
+
+            var choice = Console.ReadLine();
+
+            switch (choice)
+            {
+                case "1":
+                    return 1;
+
+                case "2":
+                    return 2;
+
+                case "3":
+                    return 3;
+
+                default:
+                    Console.WriteLine("Invalid option.");
+                    break;
+            }
+        }
+    }
+
+    private static IEnumerable<ForecastItemDto> FilterForecastItems(
+        ForecastDto forecast,
+        int forecastFilter)
+    {
+        if (forecastFilter == 1)
+        {
+            return forecast.Items;
+        }
+
+        var cityOffset = TimeSpan.FromSeconds(
+            forecast.City.Timezone);
+
+        var targetDate = DateTimeOffset.UtcNow
+            .ToOffset(cityOffset)
+            .Date;
+
+        if (forecastFilter == 3)
+        {
+            targetDate = targetDate.AddDays(1);
+        }
+
+        return forecast.Items.Where(item =>
+            GetForecastLocalDateTime(
+                item,
+                forecast.City.Timezone).Date == targetDate);
+    }
+
+    private static DateTimeOffset GetForecastLocalDateTime(
+        ForecastItemDto item,
+        int timezone)
+    {
+        var cityOffset = TimeSpan.FromSeconds(timezone);
+
+        return DateTimeOffset
+            .FromUnixTimeSeconds(item.Timestamp)
+            .ToOffset(cityOffset);
     }
 
     private static decimal ConvertTemperature(

@@ -9,4 +9,7 @@ public class ForecastCityDto
 
     [JsonPropertyName("country")]
     public string Country { get; set; } = string.Empty;
+
+    [JsonPropertyName("timezone")]
+    public int Timezone { get; set; }
 }
