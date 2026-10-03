@@ -120,6 +120,9 @@ public class ConsoleMenu
         }
 
         Console.WriteLine($"Wind Speed  : {weather.Wind.Speed:F2} m/s");
+
+        DisplayHotWeatherAlert(
+            weather.Main.Temperature);
     }
 
     private async Task ShowForecastAsync(
@@ -194,6 +197,9 @@ public class ConsoleMenu
 
             DisplayRainAlert(
                 item.ProbabilityOfPrecipitation);
+
+            DisplayHotWeatherAlert(
+                item.Main.Temperature);
         }
     }
 
@@ -277,6 +283,9 @@ public class ConsoleMenu
                 $"Condition   : {currentWeather.Weather[0].Description}");
         }
 
+        DisplayHotWeatherAlert(
+            currentWeather.Main.Temperature);
+
         Console.WriteLine();
         Console.WriteLine("FORECAST");
         Console.WriteLine("----------------------------------------");
@@ -301,6 +310,9 @@ public class ConsoleMenu
 
             DisplayRainAlert(
                 item.ProbabilityOfPrecipitation);
+
+            DisplayHotWeatherAlert(
+                item.Main.Temperature);
         }
     }
 
@@ -407,6 +419,16 @@ public class ConsoleMenu
         {
             Console.WriteLine(
                 "RAIN ALERT: High probability of precipitation.");
+        }
+    }
+
+    private static void DisplayHotWeatherAlert(
+        decimal temperatureCelsius)
+    {
+        if (temperatureCelsius > 35m)
+        {
+            Console.WriteLine("WEATHER ALERT:");
+            Console.WriteLine("High temperature detected.");
         }
     }
 
