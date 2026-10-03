@@ -78,6 +78,8 @@ public class ConsoleMenu
             return;
         }
 
+        var useFahrenheit = SelectTemperatureUnit();
+
         var weather = await _weatherService.GetCurrentWeatherAsync(
             city,
             cancellationToken);
@@ -88,20 +90,33 @@ public class ConsoleMenu
             return;
         }
 
+        var temperature = ConvertTemperature(
+            weather.Main.Temperature,
+            useFahrenheit);
+
+        var feelsLike = ConvertTemperature(
+            weather.Main.FeelsLike,
+            useFahrenheit);
+
+        var temperatureUnit = GetTemperatureUnit(useFahrenheit);
+
         Console.WriteLine();
         Console.WriteLine("========================================");
         Console.WriteLine("CURRENT WEATHER");
         Console.WriteLine("========================================");
         Console.WriteLine();
         Console.WriteLine($"City        : {weather.Name}");
-        Console.WriteLine($"Temperature : {weather.Main.Temperature:F2} °C");
-        Console.WriteLine($"Feels Like  : {weather.Main.FeelsLike:F2} °C");
+        Console.WriteLine(
+            $"Temperature : {temperature:F2} {temperatureUnit}");
+        Console.WriteLine(
+            $"Feels Like  : {feelsLike:F2} {temperatureUnit}");
         Console.WriteLine($"Humidity    : {weather.Main.Humidity} %");
         Console.WriteLine($"Pressure    : {weather.Main.Pressure} hPa");
 
         if (weather.Weather.Count > 0)
         {
-            Console.WriteLine($"Condition   : {weather.Weather[0].Description}");
+            Console.WriteLine(
+                $"Condition   : {weather.Weather[0].Description}");
         }
 
         Console.WriteLine($"Wind Speed  : {weather.Wind.Speed:F2} m/s");
@@ -121,6 +136,8 @@ public class ConsoleMenu
             return;
         }
 
+        var useFahrenheit = SelectTemperatureUnit();
+
         var forecast = await _weatherService.GetForecastAsync(
             city,
             cancellationToken);
@@ -130,6 +147,8 @@ public class ConsoleMenu
             Console.WriteLine("City not found.");
             return;
         }
+
+        var temperatureUnit = GetTemperatureUnit(useFahrenheit);
 
         Console.WriteLine();
         Console.WriteLine("========================================");
@@ -147,9 +166,13 @@ public class ConsoleMenu
 
             var precipitation = item.ProbabilityOfPrecipitation * 100;
 
+            var temperature = ConvertTemperature(
+                item.Main.Temperature,
+                useFahrenheit);
+
             Console.WriteLine(
                 $"{item.DateTimeText,-20}" +
-                $"{item.Main.Temperature,7:F1} °C   " +
+                $"{temperature,7:F1} {temperatureUnit}   " +
                 $"{condition,-18}" +
                 $"{precipitation,5:F0}%");
         }
@@ -168,6 +191,8 @@ public class ConsoleMenu
             Console.WriteLine("City is required.");
             return;
         }
+
+        var useFahrenheit = SelectTemperatureUnit();
 
         var currentWeatherTask = _weatherService.GetCurrentWeatherAsync(
             city,
@@ -192,13 +217,25 @@ public class ConsoleMenu
 
         DisplayDashboard(
             currentWeather,
-            forecast);
+            forecast,
+            useFahrenheit);
     }
 
     private static void DisplayDashboard(
         CurrentWeatherDto currentWeather,
-        ForecastDto forecast)
+        ForecastDto forecast,
+        bool useFahrenheit)
     {
+        var temperature = ConvertTemperature(
+            currentWeather.Main.Temperature,
+            useFahrenheit);
+
+        var feelsLike = ConvertTemperature(
+            currentWeather.Main.FeelsLike,
+            useFahrenheit);
+
+        var temperatureUnit = GetTemperatureUnit(useFahrenheit);
+
         Console.WriteLine();
         Console.WriteLine("========================================");
         Console.WriteLine("WEATHER DASHBOARD");
@@ -209,9 +246,9 @@ public class ConsoleMenu
         Console.WriteLine("CURRENT WEATHER");
         Console.WriteLine("----------------------------------------");
         Console.WriteLine(
-            $"Temperature : {currentWeather.Main.Temperature:F1} °C");
+            $"Temperature : {temperature:F1} {temperatureUnit}");
         Console.WriteLine(
-            $"Feels Like  : {currentWeather.Main.FeelsLike:F1} °C");
+            $"Feels Like  : {feelsLike:F1} {temperatureUnit}");
         Console.WriteLine(
             $"Humidity    : {currentWeather.Main.Humidity}%");
 
@@ -233,11 +270,59 @@ public class ConsoleMenu
 
             var precipitation = item.ProbabilityOfPrecipitation * 100;
 
+            var forecastTemperature = ConvertTemperature(
+                item.Main.Temperature,
+                useFahrenheit);
+
             Console.WriteLine(
                 $"{item.DateTimeText,-20}" +
-                $"{item.Main.Temperature,6:F1} °C   " +
+                $"{forecastTemperature,6:F1} {temperatureUnit}   " +
                 $"{condition,-18}" +
                 $"{precipitation,4:F0}%");
         }
+    }
+
+    private static bool SelectTemperatureUnit()
+    {
+        while (true)
+        {
+            Console.WriteLine();
+            Console.WriteLine("Select temperature unit:");
+            Console.WriteLine("1. Celsius");
+            Console.WriteLine("2. Fahrenheit");
+            Console.Write("Enter choice: ");
+
+            var choice = Console.ReadLine();
+
+            switch (choice)
+            {
+                case "1":
+                    return false;
+
+                case "2":
+                    return true;
+
+                default:
+                    Console.WriteLine("Invalid option.");
+                    break;
+            }
+        }
+    }
+
+    private static decimal ConvertTemperature(
+        decimal celsius,
+        bool useFahrenheit)
+    {
+        if (!useFahrenheit)
+        {
+            return celsius;
+        }
+
+        return (celsius * 9m / 5m) + 32m;
+    }
+
+    private static string GetTemperatureUnit(bool useFahrenheit)
+    {
+        return useFahrenheit ? "°F" : "°C";
     }
 }
