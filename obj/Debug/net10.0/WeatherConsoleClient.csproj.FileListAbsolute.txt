@@ -1,0 +1,14 @@
+/Users/stephen/Documents/WeatherConsoleClient/WeatherConsoleClient/bin/Debug/net10.0/WeatherConsoleClient
+/Users/stephen/Documents/WeatherConsoleClient/WeatherConsoleClient/bin/Debug/net10.0/WeatherConsoleClient.deps.json
+/Users/stephen/Documents/WeatherConsoleClient/WeatherConsoleClient/bin/Debug/net10.0/WeatherConsoleClient.runtimeconfig.json
+/Users/stephen/Documents/WeatherConsoleClient/WeatherConsoleClient/bin/Debug/net10.0/WeatherConsoleClient.dll
+/Users/stephen/Documents/WeatherConsoleClient/WeatherConsoleClient/bin/Debug/net10.0/WeatherConsoleClient.pdb
+/Users/stephen/Documents/WeatherConsoleClient/WeatherConsoleClient/obj/Debug/net10.0/WeatherConsoleClient.GeneratedMSBuildEditorConfig.editorconfig
+/Users/stephen/Documents/WeatherConsoleClient/WeatherConsoleClient/obj/Debug/net10.0/WeatherConsoleClient.AssemblyInfoInputs.cache
+/Users/stephen/Documents/WeatherConsoleClient/WeatherConsoleClient/obj/Debug/net10.0/WeatherConsoleClient.AssemblyInfo.cs
+/Users/stephen/Documents/WeatherConsoleClient/WeatherConsoleClient/obj/Debug/net10.0/WeatherConsoleClient.csproj.CoreCompileInputs.cache
+/Users/stephen/Documents/WeatherConsoleClient/WeatherConsoleClient/obj/Debug/net10.0/WeatherConsoleClient.dll
+/Users/stephen/Documents/WeatherConsoleClient/WeatherConsoleClient/obj/Debug/net10.0/refint/WeatherConsoleClient.dll
+/Users/stephen/Documents/WeatherConsoleClient/WeatherConsoleClient/obj/Debug/net10.0/WeatherConsoleClient.pdb
+/Users/stephen/Documents/WeatherConsoleClient/WeatherConsoleClient/obj/Debug/net10.0/WeatherConsoleClient.genruntimeconfig.cache
+/Users/stephen/Documents/WeatherConsoleClient/WeatherConsoleClient/obj/Debug/net10.0/ref/WeatherConsoleClient.dll
