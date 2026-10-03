@@ -6,10 +6,14 @@ namespace WeatherConsoleClient.Presentation;
 public class ConsoleMenu
 {
     private readonly IWeatherService _weatherService;
+    private readonly IWeatherFormatter _weatherFormatter;
 
-    public ConsoleMenu(IWeatherService weatherService)
+    public ConsoleMenu(
+        IWeatherService weatherService,
+        IWeatherFormatter weatherFormatter)
     {
         _weatherService = weatherService;
+        _weatherFormatter = weatherFormatter;
     }
 
     public async Task RunAsync(CancellationToken cancellationToken)
@@ -90,39 +94,10 @@ public class ConsoleMenu
             return;
         }
 
-        var temperature = ConvertTemperature(
-            weather.Main.Temperature,
-            useFahrenheit);
-
-        var feelsLike = ConvertTemperature(
-            weather.Main.FeelsLike,
-            useFahrenheit);
-
-        var temperatureUnit = GetTemperatureUnit(useFahrenheit);
-
-        Console.WriteLine();
-        Console.WriteLine("========================================");
-        Console.WriteLine("CURRENT WEATHER");
-        Console.WriteLine("========================================");
-        Console.WriteLine();
-        Console.WriteLine($"City        : {weather.Name}");
-        Console.WriteLine(
-            $"Temperature : {temperature:F2} {temperatureUnit}");
-        Console.WriteLine(
-            $"Feels Like  : {feelsLike:F2} {temperatureUnit}");
-        Console.WriteLine($"Humidity    : {weather.Main.Humidity} %");
-        Console.WriteLine($"Pressure    : {weather.Main.Pressure} hPa");
-
-        if (weather.Weather.Count > 0)
-        {
-            Console.WriteLine(
-                $"Condition   : {weather.Weather[0].Description}");
-        }
-
-        Console.WriteLine($"Wind Speed  : {weather.Wind.Speed:F2} m/s");
-
-        DisplayHotWeatherAlert(
-            weather.Main.Temperature);
+        Console.Write(
+            _weatherFormatter.FormatCurrentWeather(
+                weather,
+                useFahrenheit));
     }
 
     private async Task ShowForecastAsync(
@@ -152,19 +127,9 @@ public class ConsoleMenu
             return;
         }
 
-        var temperatureUnit = GetTemperatureUnit(useFahrenheit);
-
         var forecastItems = FilterForecastItems(
             forecast,
             forecastFilter).ToList();
-
-        Console.WriteLine();
-        Console.WriteLine("========================================");
-        Console.WriteLine("5-DAY / 3-HOUR FORECAST");
-        Console.WriteLine("========================================");
-        Console.WriteLine();
-        Console.WriteLine($"City: {forecast.City.Name}");
-        Console.WriteLine();
 
         if (forecastItems.Count == 0)
         {
@@ -173,38 +138,11 @@ public class ConsoleMenu
             return;
         }
 
-        foreach (var item in forecastItems)
-        {
-            var condition = item.Weather.Count > 0
-                ? item.Weather[0].Description
-                : "Unknown";
-
-            var precipitation = item.ProbabilityOfPrecipitation * 100;
-
-            var temperature = ConvertTemperature(
-                item.Main.Temperature,
-                useFahrenheit);
-
-            var localDateTime = GetForecastLocalDateTime(
-                item,
-                forecast.City.Timezone);
-
-            Console.WriteLine(
-                $"{localDateTime:yyyy-MM-dd HH:mm:ss} " +
-                $"{temperature,7:F1} {temperatureUnit}   " +
-                $"{condition,-18}" +
-                $"{precipitation,5:F0}%");
-
-            DisplayRainAlert(
-                item.ProbabilityOfPrecipitation);
-
-            DisplayHotWeatherAlert(
-                item.Main.Temperature);
-        }
-
-        DisplayForecastSummary(
-            forecastItems,
-            useFahrenheit);
+        Console.Write(
+            _weatherFormatter.FormatForecast(
+                forecast,
+                forecastItems,
+                useFahrenheit));
     }
 
     private async Task ShowDashboardAsync(
@@ -223,13 +161,15 @@ public class ConsoleMenu
 
         var useFahrenheit = SelectTemperatureUnit();
 
-        var currentWeatherTask = _weatherService.GetCurrentWeatherAsync(
-            city,
-            cancellationToken);
+        var currentWeatherTask =
+            _weatherService.GetCurrentWeatherAsync(
+                city,
+                cancellationToken);
 
-        var forecastTask = _weatherService.GetForecastAsync(
-            city,
-            cancellationToken);
+        var forecastTask =
+            _weatherService.GetForecastAsync(
+                city,
+                cancellationToken);
 
         await Task.WhenAll(
             currentWeatherTask,
@@ -240,139 +180,16 @@ public class ConsoleMenu
 
         if (currentWeather is null || forecast is null)
         {
-            Console.WriteLine("Unable to retrieve weather information.");
+            Console.WriteLine(
+                "Unable to retrieve weather information.");
             return;
         }
 
-        DisplayDashboard(
-            currentWeather,
-            forecast,
-            useFahrenheit);
-    }
-
-    private static void DisplayDashboard(
-        CurrentWeatherDto currentWeather,
-        ForecastDto forecast,
-        bool useFahrenheit)
-    {
-        var temperature = ConvertTemperature(
-            currentWeather.Main.Temperature,
-            useFahrenheit);
-
-        var feelsLike = ConvertTemperature(
-            currentWeather.Main.FeelsLike,
-            useFahrenheit);
-
-        var temperatureUnit = GetTemperatureUnit(useFahrenheit);
-
-        Console.WriteLine();
-        Console.WriteLine("========================================");
-        Console.WriteLine("WEATHER DASHBOARD");
-        Console.WriteLine("========================================");
-        Console.WriteLine();
-        Console.WriteLine($"City: {currentWeather.Name}");
-        Console.WriteLine();
-        Console.WriteLine("CURRENT WEATHER");
-        Console.WriteLine("----------------------------------------");
-        Console.WriteLine(
-            $"Temperature : {temperature:F1} {temperatureUnit}");
-        Console.WriteLine(
-            $"Feels Like  : {feelsLike:F1} {temperatureUnit}");
-        Console.WriteLine(
-            $"Humidity    : {currentWeather.Main.Humidity}%");
-
-        if (currentWeather.Weather.Count > 0)
-        {
-            Console.WriteLine(
-                $"Condition   : {currentWeather.Weather[0].Description}");
-        }
-
-        DisplayHotWeatherAlert(
-            currentWeather.Main.Temperature);
-
-        Console.WriteLine();
-        Console.WriteLine("FORECAST");
-        Console.WriteLine("----------------------------------------");
-
-        foreach (var item in forecast.Items)
-        {
-            var condition = item.Weather.Count > 0
-                ? item.Weather[0].Description
-                : "Unknown";
-
-            var precipitation = item.ProbabilityOfPrecipitation * 100;
-
-            var forecastTemperature = ConvertTemperature(
-                item.Main.Temperature,
-                useFahrenheit);
-
-            Console.WriteLine(
-                $"{item.DateTimeText,-20}" +
-                $"{forecastTemperature,6:F1} {temperatureUnit}   " +
-                $"{condition,-18}" +
-                $"{precipitation,4:F0}%");
-
-            DisplayRainAlert(
-                item.ProbabilityOfPrecipitation);
-
-            DisplayHotWeatherAlert(
-                item.Main.Temperature);
-        }
-
-        DisplayForecastSummary(
-            forecast.Items,
-            useFahrenheit);
-    }
-
-    private static void DisplayForecastSummary(
-        IEnumerable<ForecastItemDto> forecastItems,
-        bool useFahrenheit)
-    {
-        var items = forecastItems.ToList();
-
-        if (items.Count == 0)
-        {
-            return;
-        }
-
-        var highestTemperature = items.Max(
-            item => item.Main.Temperature);
-
-        var lowestTemperature = items.Min(
-            item => item.Main.Temperature);
-
-        var averageTemperature = items.Average(
-            item => item.Main.Temperature);
-
-        var highestRainProbability = items.Max(
-            item => item.ProbabilityOfPrecipitation) * 100;
-
-        highestTemperature = ConvertTemperature(
-            highestTemperature,
-            useFahrenheit);
-
-        lowestTemperature = ConvertTemperature(
-            lowestTemperature,
-            useFahrenheit);
-
-        averageTemperature = ConvertTemperature(
-            averageTemperature,
-            useFahrenheit);
-
-        var temperatureUnit = GetTemperatureUnit(
-            useFahrenheit);
-
-        Console.WriteLine();
-        Console.WriteLine("FORECAST SUMMARY");
-        Console.WriteLine("----------------------------------------");
-        Console.WriteLine(
-            $"Highest Temperature : {highestTemperature:F1} {temperatureUnit}");
-        Console.WriteLine(
-            $"Lowest Temperature  : {lowestTemperature:F1} {temperatureUnit}");
-        Console.WriteLine(
-            $"Average Temperature : {averageTemperature:F1} {temperatureUnit}");
-        Console.WriteLine(
-            $"Highest Rain Chance : {highestRainProbability:F0} %");
+        Console.Write(
+            _weatherFormatter.FormatDashboard(
+                currentWeather,
+                forecast,
+                useFahrenheit));
     }
 
     private static bool SelectTemperatureUnit()
@@ -469,42 +286,5 @@ public class ConsoleMenu
         return DateTimeOffset
             .FromUnixTimeSeconds(item.Timestamp)
             .ToOffset(cityOffset);
-    }
-
-    private static void DisplayRainAlert(
-        decimal precipitationProbability)
-    {
-        if (precipitationProbability >= 0.60m)
-        {
-            Console.WriteLine(
-                "RAIN ALERT: High probability of precipitation.");
-        }
-    }
-
-    private static void DisplayHotWeatherAlert(
-        decimal temperatureCelsius)
-    {
-        if (temperatureCelsius > 35m)
-        {
-            Console.WriteLine("WEATHER ALERT:");
-            Console.WriteLine("High temperature detected.");
-        }
-    }
-
-    private static decimal ConvertTemperature(
-        decimal celsius,
-        bool useFahrenheit)
-    {
-        if (!useFahrenheit)
-        {
-            return celsius;
-        }
-
-        return (celsius * 9m / 5m) + 32m;
-    }
-
-    private static string GetTemperatureUnit(bool useFahrenheit)
-    {
-        return useFahrenheit ? "°F" : "°C";
     }
 }

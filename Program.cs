@@ -38,6 +38,7 @@ internal class Program
             .AddStandardResilienceHandler();
 
         services.AddScoped<IWeatherService, WeatherService>();
+        services.AddScoped<IWeatherFormatter, ConsoleWeatherFormatter>();
         services.AddScoped<ConsoleMenu>();
 
         using var serviceProvider = services.BuildServiceProvider();
