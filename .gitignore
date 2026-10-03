@@ -1,0 +1,22 @@
+# Build output
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Application configuration / secrets
+appsettings.json
+appsettings.*.json
+
+# Keep safe configuration templates
+!appsettings.example.json
