@@ -191,6 +191,9 @@ public class ConsoleMenu
                 $"{temperature,7:F1} {temperatureUnit}   " +
                 $"{condition,-18}" +
                 $"{precipitation,5:F0}%");
+
+            DisplayRainAlert(
+                item.ProbabilityOfPrecipitation);
         }
     }
 
@@ -295,6 +298,9 @@ public class ConsoleMenu
                 $"{forecastTemperature,6:F1} {temperatureUnit}   " +
                 $"{condition,-18}" +
                 $"{precipitation,4:F0}%");
+
+            DisplayRainAlert(
+                item.ProbabilityOfPrecipitation);
         }
     }
 
@@ -392,6 +398,16 @@ public class ConsoleMenu
         return DateTimeOffset
             .FromUnixTimeSeconds(item.Timestamp)
             .ToOffset(cityOffset);
+    }
+
+    private static void DisplayRainAlert(
+        decimal precipitationProbability)
+    {
+        if (precipitationProbability >= 0.60m)
+        {
+            Console.WriteLine(
+                "RAIN ALERT: High probability of precipitation.");
+        }
     }
 
     private static decimal ConvertTemperature(
