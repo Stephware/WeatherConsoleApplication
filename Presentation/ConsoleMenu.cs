@@ -201,6 +201,10 @@ public class ConsoleMenu
             DisplayHotWeatherAlert(
                 item.Main.Temperature);
         }
+
+        DisplayForecastSummary(
+            forecastItems,
+            useFahrenheit);
     }
 
     private async Task ShowDashboardAsync(
@@ -314,6 +318,61 @@ public class ConsoleMenu
             DisplayHotWeatherAlert(
                 item.Main.Temperature);
         }
+
+        DisplayForecastSummary(
+            forecast.Items,
+            useFahrenheit);
+    }
+
+    private static void DisplayForecastSummary(
+        IEnumerable<ForecastItemDto> forecastItems,
+        bool useFahrenheit)
+    {
+        var items = forecastItems.ToList();
+
+        if (items.Count == 0)
+        {
+            return;
+        }
+
+        var highestTemperature = items.Max(
+            item => item.Main.Temperature);
+
+        var lowestTemperature = items.Min(
+            item => item.Main.Temperature);
+
+        var averageTemperature = items.Average(
+            item => item.Main.Temperature);
+
+        var highestRainProbability = items.Max(
+            item => item.ProbabilityOfPrecipitation) * 100;
+
+        highestTemperature = ConvertTemperature(
+            highestTemperature,
+            useFahrenheit);
+
+        lowestTemperature = ConvertTemperature(
+            lowestTemperature,
+            useFahrenheit);
+
+        averageTemperature = ConvertTemperature(
+            averageTemperature,
+            useFahrenheit);
+
+        var temperatureUnit = GetTemperatureUnit(
+            useFahrenheit);
+
+        Console.WriteLine();
+        Console.WriteLine("FORECAST SUMMARY");
+        Console.WriteLine("----------------------------------------");
+        Console.WriteLine(
+            $"Highest Temperature : {highestTemperature:F1} {temperatureUnit}");
+        Console.WriteLine(
+            $"Lowest Temperature  : {lowestTemperature:F1} {temperatureUnit}");
+        Console.WriteLine(
+            $"Average Temperature : {averageTemperature:F1} {temperatureUnit}");
+        Console.WriteLine(
+            $"Highest Rain Chance : {highestRainProbability:F0} %");
     }
 
     private static bool SelectTemperatureUnit()
